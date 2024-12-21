@@ -14,6 +14,13 @@
 
 #define STACKSIZE  1000   // maximum storage
 
+#define MAX_CASE   		20     //maxinum cases in switsh                           
+#define INCREMENT  		5      //increment preparing for more space if necessary
+#define MAX_CONTROL 	50     //maxinum control statement
+
+#define TRUE	   		1																			// added by nanahka 17-11-26
+#define FALSE	   		0
+
 enum symtype
 {
 	SYM_NULL,
@@ -45,7 +52,15 @@ enum symtype
 	SYM_CALL,
 	SYM_CONST,
 	SYM_VAR,
-	SYM_PROCEDURE
+	SYM_PROCEDURE,
+        SYM_BREAK,
+        SYM_CONTINUE,
+        SYM_GOTO,
+        SYM_SWITCH,
+        SYM_CASE,
+        SYM_COLON,
+        SYM_DEFAULT,
+        SYM_FOR, 
 };
 
 enum idtype
@@ -55,7 +70,7 @@ enum idtype
 
 enum opcode
 {
-	LIT, OPR, LOD, STO, CAL, INT, JMP, JPC
+	LIT, OPR, LOD, STO, CAL, INT, JMP, JPC, JET
 };
 
 enum oprcode
@@ -124,6 +139,10 @@ int  err;
 int  cx;         // index of current instruction to be generated.
 int  level = 0;
 int  tx = 0;
+int  env;        // mark the type of environment where break,continue is                    
+int  he;
+int  ta;       // mark beginning and end of circulation
+
 
 char line[80];
 
@@ -159,6 +178,16 @@ char* mnemonic[MAXINS] =
 	"LIT", "OPR", "LOD", "STO", "CAL", "INT", "JMP", "JPC"
 };
 
+enum environment                                           							
+{
+	ENV_NULL, ENV_DO, ENV_WHILE, ENV_FOR, ENV_SWITCH                    //four kind env:do-while,while,for,switch
+};
+
+enum control                                                       						
+{
+	CON_NULL, CON_BREAK, CON_CONTINUE                                   //mark the type of control statement
+};
+
 typedef struct
 {
 	char name[MAXIDLEN + 1];
@@ -176,6 +205,27 @@ typedef struct
 	short address;
 } mask;
 
-FILE* infile;
+typedef struct                              
+{
+	int t;                   //the condition of switch
+	int c;                   //the index of first ins of every case
+	int flag;                //to mark break
+	int cx_bre;               //break cx
+}casetab;
+casetab *switchtab;
+int tx_c = 0;
+int maxcase = MAX_CASE;
+
+typedef struct
+{
+	int ty;                     //type
+	int c;                     //cx of the stat
+} col;
+col cstack[MAX_CONTROL];             //max depth of circulation
+int ctop = 0;                      //top of cltab
+int count = 0;                   //count num of break and continue
+
+FILE* infile;               // 指向输入文件的文件指针
+
 
 // EOF PL0.h
